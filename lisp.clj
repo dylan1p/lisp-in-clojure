@@ -13,8 +13,6 @@
     '= =
     '+ +
     'not not
-    'x 10
-    'y 20
     'print print}))
 
 
@@ -61,6 +59,9 @@
                        (let [newenv (into local-env (map vector fnargs rest))]
                          (my-eval body newenv))))
 
+
+        do          (doall (map #(my-eval % local-env) args))
+
         ;; Otherwie, op must be a function
         (my-eval-funcall op args local-env)))
 
@@ -72,6 +73,13 @@
   (my-eval form {}))
 
 
+(defn my-load-file
+  [file]
+  (with-open [in (java.io.PushbackReader. (clojure.java.io/reader file))]
+    (let [eof (Object.)]
+      (let [forms (take-while #(not= % eof) (repeatedly #(read in false eof)))]
+        (doall (map #(my-global-eval %) forms))))))
+
 (defn my-repl
   []
   (print "> ")
@@ -80,4 +88,5 @@
   (newline)
   (recur))
 
+(my-load-file "./core.lisp")
 (my-repl)
