@@ -50,10 +50,18 @@
                        (my-eval if-true local-env)
                        (my-eval if-false local-env)))
         def        (let [[variable-name value] args]
-                     (swap! global-env #(assoc % variable-name value))
-                     false)
+                     (swap! global-env #(assoc % variable-name (my-eval value local-env)))
+                     nil)
+        lambda     (let [[fnargs body] args]
+                     ;; fargs = (z)
+                     ;; rest = (10)
+                     ;; your new local-env =
+                     ;; { z 10 ...old local-env }
+                     (fn [& rest]
+                       (let [newenv (into local-env (map vector fnargs rest))]
+                         (my-eval body newenv))))
 
-        ;; Otherwie, op must be a functionx
+        ;; Otherwie, op must be a function
         (my-eval-funcall op args local-env)))
 
     :else (throw (Exception. "Unknown form"))))
